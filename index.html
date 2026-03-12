@@ -1,0 +1,1992 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#0A0E1A">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="NetQuest">
+    <link rel="manifest" href="/static/manifest.json">
+    <title>NetQuest 🌐 เรียนเน็ตเวิร์ค</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@400;600;700;800;900&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+    
+    <style>
+        /* ============ CSS Variables ============ */
+        :root {
+            --bg-primary: #0A0E1A;
+            --bg-card: #111827;
+            --bg-card2: #1A2235;
+            --accent-green: #00FF87;
+            --accent-blue: #00C2FF;
+            --accent-purple: #A855F7;
+            --accent-orange: #FF6B35;
+            --accent-yellow: #FFD60A;
+            --accent-red: #FF3B5C;
+            --accent-teal: #4ECDC4;
+            --text-primary: #FFFFFF;
+            --text-secondary: #8B9AB8;
+            --border: rgba(255,255,255,0.08);
+            --glow-green: 0 0 20px rgba(0,255,135,0.3);
+            --glow-blue: 0 0 20px rgba(0,194,255,0.3);
+            --radius: 16px;
+            --radius-sm: 10px;
+        }
+
+        /* ============ Reset & Base ============ */
+        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+        body {
+            font-family: 'Prompt', sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* ============ Background Effects ============ */
+        .bg-glow {
+            position: fixed;
+            border-radius: 50%;
+            filter: blur(80px);
+            pointer-events: none;
+            z-index: 0;
+            opacity: 0.15;
+        }
+        .bg-glow-1 { width: 400px; height: 400px; background: var(--accent-blue); top: -100px; right: -100px; }
+        .bg-glow-2 { width: 300px; height: 300px; background: var(--accent-purple); bottom: 100px; left: -50px; }
+        .bg-glow-3 { width: 200px; height: 200px; background: var(--accent-green); top: 50%; left: 50%; transform: translate(-50%, -50%); opacity: 0.08; }
+
+        /* ============ App Container ============ */
+        #app {
+            max-width: 480px;
+            margin: 0 auto;
+            min-height: 100vh;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* ============ Views (Screens) ============ */
+        .view { display: none; min-height: 100vh; }
+        .view.active { display: flex; flex-direction: column; }
+
+        /* ============ SPLASH SCREEN ============ */
+        #splash-screen {
+            background: var(--bg-primary);
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .splash-logo {
+            font-size: 80px;
+            animation: float 2s ease-in-out infinite;
+        }
+
+        .splash-title {
+            font-size: 42px;
+            font-weight: 900;
+            background: linear-gradient(135deg, var(--accent-blue), var(--accent-green));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            letter-spacing: -1px;
+        }
+
+        .splash-subtitle {
+            font-size: 16px;
+            color: var(--text-secondary);
+            text-align: center;
+            padding: 0 40px;
+        }
+
+        .splash-loading {
+            width: 200px;
+            height: 4px;
+            background: var(--border);
+            border-radius: 2px;
+            overflow: hidden;
+            margin-top: 20px;
+        }
+
+        .splash-loading-bar {
+            height: 100%;
+            background: linear-gradient(90deg, var(--accent-blue), var(--accent-green));
+            border-radius: 2px;
+            animation: loading 2s ease forwards;
+        }
+
+        @keyframes loading { from { width: 0; } to { width: 100%; } }
+        @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
+
+        /* ============ HOME SCREEN ============ */
+        #home-screen { flex-direction: column; }
+
+        .top-bar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 16px 20px;
+            background: rgba(17, 24, 39, 0.8);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--border);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .app-brand {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .brand-icon { font-size: 28px; }
+
+        .brand-name {
+            font-size: 22px;
+            font-weight: 900;
+            background: linear-gradient(135deg, var(--accent-blue), var(--accent-green));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .top-stats {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+        }
+
+        .stat-badge {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            background: var(--bg-card2);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 6px 12px;
+            font-size: 14px;
+            font-weight: 700;
+            transition: all 0.2s;
+        }
+
+        .stat-badge:active { transform: scale(0.95); }
+        .stat-badge .icon { font-size: 16px; }
+        .stat-streak { color: var(--accent-orange); }
+        .stat-xp { color: var(--accent-yellow); }
+
+        /* Hero Section */
+        .hero-section {
+            padding: 30px 20px 10px;
+            text-align: center;
+        }
+
+        .hero-greeting {
+            font-size: 14px;
+            color: var(--text-secondary);
+            margin-bottom: 4px;
+        }
+
+        .hero-title {
+            font-size: 28px;
+            font-weight: 900;
+            line-height: 1.2;
+        }
+
+        .hero-title .highlight {
+            background: linear-gradient(135deg, var(--accent-blue), var(--accent-green));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        /* XP Progress Bar */
+        .xp-progress-container {
+            margin: 20px 20px 0;
+            background: var(--bg-card);
+            border-radius: var(--radius);
+            padding: 16px;
+            border: 1px solid var(--border);
+        }
+
+        .xp-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            font-size: 13px;
+        }
+
+        .xp-label { color: var(--text-secondary); }
+        .xp-value { color: var(--accent-yellow); font-weight: 700; }
+
+        .xp-bar {
+            height: 12px;
+            background: rgba(255,255,255,0.05);
+            border-radius: 6px;
+            overflow: hidden;
+        }
+
+        .xp-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--accent-yellow), var(--accent-orange));
+            border-radius: 6px;
+            transition: width 1s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+        }
+
+        .xp-fill::after {
+            content: '';
+            position: absolute;
+            top: 0; right: 0;
+            width: 20px; height: 100%;
+            background: rgba(255,255,255,0.3);
+            border-radius: 6px;
+            filter: blur(4px);
+        }
+
+        /* Daily Challenge Banner */
+        .daily-banner {
+            margin: 16px 20px 0;
+            background: linear-gradient(135deg, rgba(168,85,247,0.15), rgba(0,194,255,0.15));
+            border: 1px solid rgba(168,85,247,0.4);
+            border-radius: var(--radius);
+            padding: 16px;
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .daily-banner:active { transform: scale(0.98); }
+
+        .daily-icon {
+            font-size: 36px;
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.1); } }
+
+        .daily-info { flex: 1; }
+
+        .daily-title {
+            font-size: 15px;
+            font-weight: 700;
+            color: var(--accent-purple);
+        }
+
+        .daily-desc {
+            font-size: 12px;
+            color: var(--text-secondary);
+            margin-top: 2px;
+        }
+
+        .daily-arrow {
+            color: var(--accent-purple);
+            font-size: 20px;
+        }
+
+        /* Section Headers */
+        .section-header {
+            padding: 20px 20px 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .section-title {
+            font-size: 18px;
+            font-weight: 800;
+        }
+
+        .section-subtitle {
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+
+        /* Lesson Cards */
+        .lessons-grid {
+            padding: 0 20px 100px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .lesson-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 18px;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .lesson-card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0;
+            width: 4px; height: 100%;
+            background: var(--card-color, var(--accent-blue));
+            border-radius: 4px 0 0 4px;
+        }
+
+        .lesson-card:active { transform: scale(0.98); }
+
+        .lesson-card-inner {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+
+        .lesson-card-icon {
+            width: 52px; height: 52px;
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 26px;
+            background: var(--card-bg, rgba(0,194,255,0.1));
+            flex-shrink: 0;
+        }
+
+        .lesson-card-info { flex: 1; min-width: 0; }
+
+        .lesson-card-title {
+            font-size: 16px;
+            font-weight: 700;
+            margin-bottom: 4px;
+        }
+
+        .lesson-card-desc {
+            font-size: 12px;
+            color: var(--text-secondary);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .lesson-card-meta {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 8px;
+        }
+
+        .lesson-meta-tag {
+            font-size: 11px;
+            padding: 3px 8px;
+            border-radius: 20px;
+            background: rgba(255,255,255,0.06);
+            color: var(--text-secondary);
+        }
+
+        .lesson-meta-tag.xp {
+            color: var(--accent-yellow);
+            background: rgba(255,214,10,0.1);
+        }
+
+        .lesson-progress-bar {
+            margin-top: 10px;
+            height: 5px;
+            background: rgba(255,255,255,0.06);
+            border-radius: 3px;
+            overflow: hidden;
+        }
+
+        .lesson-progress-fill {
+            height: 100%;
+            border-radius: 3px;
+            background: var(--card-color, var(--accent-blue));
+            transition: width 0.8s ease;
+        }
+
+        .lesson-status {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            flex-shrink: 0;
+        }
+
+        .lesson-status-icon {
+            width: 34px; height: 34px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+        }
+
+        .status-locked { background: rgba(255,255,255,0.05); color: var(--text-secondary); }
+        .status-active { background: rgba(0,194,255,0.15); color: var(--accent-blue); border: 2px solid var(--accent-blue); animation: glow-border 2s ease-in-out infinite; }
+        .status-done { background: rgba(0,255,135,0.15); color: var(--accent-green); }
+
+        @keyframes glow-border { 0%, 100% { box-shadow: 0 0 0px rgba(0,194,255,0.4); } 50% { box-shadow: 0 0 12px rgba(0,194,255,0.6); } }
+
+        /* ============ BOTTOM NAV ============ */
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 100%;
+            max-width: 480px;
+            background: rgba(17, 24, 39, 0.95);
+            backdrop-filter: blur(20px);
+            border-top: 1px solid var(--border);
+            display: flex;
+            z-index: 200;
+        }
+
+        .nav-item {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 10px 5px 14px;
+            cursor: pointer;
+            transition: all 0.2s;
+            gap: 4px;
+        }
+
+        .nav-item:active { opacity: 0.7; }
+
+        .nav-icon {
+            font-size: 24px;
+            transition: transform 0.2s;
+        }
+
+        .nav-label {
+            font-size: 10px;
+            color: var(--text-secondary);
+            transition: color 0.2s;
+            font-weight: 600;
+        }
+
+        .nav-item.active .nav-icon { transform: scale(1.15); }
+        .nav-item.active .nav-label { color: var(--accent-blue); }
+
+        /* ============ QUIZ SCREEN ============ */
+        #quiz-screen { flex-direction: column; }
+
+        .quiz-header {
+            padding: 16px 20px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            background: rgba(17, 24, 39, 0.9);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--border);
+        }
+
+        .btn-back {
+            width: 40px; height: 40px;
+            border-radius: 10px;
+            background: var(--bg-card2);
+            border: 1px solid var(--border);
+            color: var(--text-primary);
+            font-size: 20px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+        }
+
+        .btn-back:active { transform: scale(0.9); }
+
+        .quiz-progress-bar-outer {
+            flex: 1;
+            height: 10px;
+            background: rgba(255,255,255,0.06);
+            border-radius: 5px;
+            overflow: hidden;
+        }
+
+        .quiz-progress-bar-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--accent-blue), var(--accent-green));
+            border-radius: 5px;
+            transition: width 0.5s ease;
+        }
+
+        .quiz-counter {
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--text-secondary);
+            white-space: nowrap;
+        }
+
+        /* Hearts */
+        .hearts-display {
+            display: flex;
+            gap: 4px;
+        }
+
+        .heart { font-size: 18px; transition: all 0.3s; }
+        .heart.lost { filter: grayscale(1); opacity: 0.3; transform: scale(0.8); }
+
+        /* Quiz Content */
+        .quiz-content {
+            flex: 1;
+            padding: 24px 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            overflow-y: auto;
+        }
+
+        .question-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 24px;
+            text-align: center;
+        }
+
+        .question-topic {
+            font-size: 12px;
+            color: var(--accent-blue);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 12px;
+            font-weight: 600;
+        }
+
+        .question-text {
+            font-size: 20px;
+            font-weight: 700;
+            line-height: 1.4;
+        }
+
+        .question-points {
+            margin-top: 12px;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: rgba(255,214,10,0.1);
+            border: 1px solid rgba(255,214,10,0.2);
+            border-radius: 20px;
+            padding: 4px 12px;
+            font-size: 13px;
+            color: var(--accent-yellow);
+            font-weight: 600;
+        }
+
+        /* Options */
+        .options-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .option-btn {
+            width: 100%;
+            background: var(--bg-card);
+            border: 2px solid var(--border);
+            border-radius: var(--radius);
+            padding: 16px 18px;
+            color: var(--text-primary);
+            font-family: 'Prompt', sans-serif;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-align: left;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .option-btn:active:not(:disabled) { transform: scale(0.98); }
+
+        .option-label {
+            width: 28px; height: 28px;
+            border-radius: 8px;
+            background: rgba(255,255,255,0.06);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 13px;
+            font-weight: 800;
+            flex-shrink: 0;
+        }
+
+        .option-btn:not(:disabled):hover {
+            border-color: var(--accent-blue);
+            background: rgba(0,194,255,0.08);
+        }
+
+        .option-btn.selected {
+            border-color: var(--accent-blue);
+            background: rgba(0,194,255,0.12);
+        }
+
+        .option-btn.correct {
+            border-color: var(--accent-green);
+            background: rgba(0,255,135,0.12);
+            animation: correct-flash 0.5s ease;
+        }
+
+        .option-btn.correct .option-label {
+            background: var(--accent-green);
+            color: #000;
+        }
+
+        .option-btn.wrong {
+            border-color: var(--accent-red);
+            background: rgba(255,59,92,0.12);
+            animation: wrong-shake 0.4s ease;
+        }
+
+        .option-btn.wrong .option-label {
+            background: var(--accent-red);
+            color: #fff;
+        }
+
+        @keyframes correct-flash { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.02); } }
+        @keyframes wrong-shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-6px); } 75% { transform: translateX(6px); } }
+
+        /* Feedback Box */
+        .feedback-box {
+            border-radius: var(--radius);
+            padding: 16px;
+            display: none;
+            gap: 12px;
+            align-items: flex-start;
+        }
+
+        .feedback-box.show { display: flex; animation: slide-up 0.3s ease; }
+        .feedback-box.correct-fb { background: rgba(0,255,135,0.1); border: 1px solid rgba(0,255,135,0.3); }
+        .feedback-box.wrong-fb { background: rgba(255,59,92,0.1); border: 1px solid rgba(255,59,92,0.3); }
+
+        @keyframes slide-up { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        .feedback-icon { font-size: 24px; flex-shrink: 0; }
+
+        .feedback-text { flex: 1; }
+
+        .feedback-title {
+            font-size: 15px;
+            font-weight: 800;
+            margin-bottom: 4px;
+        }
+
+        .correct-fb .feedback-title { color: var(--accent-green); }
+        .wrong-fb .feedback-title { color: var(--accent-red); }
+
+        .feedback-explanation { font-size: 13px; color: var(--text-secondary); line-height: 1.5; }
+
+        /* Quiz Footer */
+        .quiz-footer {
+            padding: 16px 20px 30px;
+            background: rgba(17, 24, 39, 0.9);
+            backdrop-filter: blur(20px);
+            border-top: 1px solid var(--border);
+        }
+
+        .btn-primary {
+            width: 100%;
+            padding: 16px;
+            border-radius: var(--radius);
+            border: none;
+            background: linear-gradient(135deg, var(--accent-blue), var(--accent-green));
+            color: #000;
+            font-family: 'Prompt', sans-serif;
+            font-size: 16px;
+            font-weight: 800;
+            cursor: pointer;
+            transition: all 0.2s;
+            letter-spacing: 0.3px;
+        }
+
+        .btn-primary:active { transform: scale(0.98); }
+        .btn-primary:disabled { background: rgba(255,255,255,0.1); color: var(--text-secondary); cursor: not-allowed; }
+
+        /* ============ RESULT SCREEN ============ */
+        #result-screen {
+            justify-content: center;
+            align-items: center;
+            padding: 30px 20px;
+            flex-direction: column;
+            gap: 24px;
+            text-align: center;
+        }
+
+        .result-trophy {
+            font-size: 80px;
+            animation: trophy-bounce 1s cubic-bezier(0.36, 0.07, 0.19, 0.97) forwards;
+        }
+
+        @keyframes trophy-bounce { 0% { transform: scale(0) rotate(-10deg); opacity: 0; } 60% { transform: scale(1.2) rotate(5deg); opacity: 1; } 100% { transform: scale(1) rotate(0deg); } }
+
+        .result-title {
+            font-size: 32px;
+            font-weight: 900;
+        }
+
+        .result-subtitle { color: var(--text-secondary); }
+
+        .result-stats {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+            width: 100%;
+        }
+
+        .result-stat {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 16px 10px;
+        }
+
+        .result-stat-value {
+            font-size: 28px;
+            font-weight: 900;
+            line-height: 1;
+        }
+
+        .result-stat-label {
+            font-size: 11px;
+            color: var(--text-secondary);
+            margin-top: 4px;
+        }
+
+        .result-actions {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            width: 100%;
+        }
+
+        .btn-secondary {
+            width: 100%;
+            padding: 14px;
+            border-radius: var(--radius);
+            border: 2px solid var(--border);
+            background: transparent;
+            color: var(--text-primary);
+            font-family: 'Prompt', sans-serif;
+            font-size: 15px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-secondary:active { background: var(--bg-card2); }
+
+        /* Stars animation */
+        .stars-container {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            pointer-events: none;
+            z-index: 300;
+        }
+
+        .star-particle {
+            position: absolute;
+            font-size: 20px;
+            animation: star-fall 1.5s ease forwards;
+        }
+
+        @keyframes star-fall {
+            0% { opacity: 1; transform: translateY(-20px) scale(0); }
+            50% { opacity: 1; transform: translateY(30px) scale(1.2); }
+            100% { opacity: 0; transform: translateY(80px) scale(0.5); }
+        }
+
+        /* ============ LEADERBOARD ============ */
+        #leaderboard-screen { flex-direction: column; }
+
+        .leaderboard-header {
+            padding: 20px;
+            text-align: center;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .leaderboard-title {
+            font-size: 24px;
+            font-weight: 900;
+        }
+
+        .top-3-grid {
+            display: grid;
+            grid-template-columns: 1fr 1.2fr 1fr;
+            gap: 10px;
+            padding: 24px 20px 16px;
+            align-items: flex-end;
+        }
+
+        .top-player {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 14px 8px;
+            text-align: center;
+            transition: all 0.3s;
+        }
+
+        .top-player.first-place {
+            border-color: rgba(255,214,10,0.4);
+            background: rgba(255,214,10,0.05);
+        }
+
+        .top-player.second-place {
+            border-color: rgba(192,192,192,0.3);
+        }
+
+        .top-player.third-place {
+            border-color: rgba(205,127,50,0.3);
+        }
+
+        .top-rank { font-size: 24px; }
+        .top-avatar { font-size: 32px; margin: 6px 0; }
+        .top-name { font-size: 12px; font-weight: 700; }
+        .top-xp { font-size: 11px; color: var(--accent-yellow); margin-top: 4px; }
+
+        .leaderboard-list {
+            padding: 0 20px 100px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .lb-item {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            padding: 14px 16px;
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            transition: all 0.2s;
+        }
+
+        .lb-rank {
+            font-size: 18px;
+            font-weight: 900;
+            color: var(--text-secondary);
+            width: 28px;
+            text-align: center;
+        }
+
+        .lb-avatar { font-size: 28px; }
+
+        .lb-info { flex: 1; }
+        .lb-name { font-size: 15px; font-weight: 700; }
+        .lb-streak { font-size: 12px; color: var(--text-secondary); }
+
+        .lb-xp {
+            font-size: 15px;
+            font-weight: 800;
+            color: var(--accent-yellow);
+        }
+
+        /* ============ LESSON CONTENT SCREEN ============ */
+        #lesson-screen { flex-direction: column; }
+
+        .lesson-header {
+            padding: 16px 20px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            border-bottom: 1px solid var(--border);
+            background: rgba(17,24,39,0.9);
+            backdrop-filter: blur(20px);
+        }
+
+        .lesson-title-bar {
+            flex: 1;
+            font-size: 18px;
+            font-weight: 800;
+        }
+
+        .lesson-body {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+            padding-bottom: 100px;
+        }
+
+        /* Lesson content styles */
+        .lesson-body h3 {
+            font-size: 20px;
+            font-weight: 800;
+            margin-bottom: 12px;
+            margin-top: 20px;
+            background: linear-gradient(135deg, var(--accent-blue), var(--accent-green));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .lesson-body h3:first-child { margin-top: 0; }
+
+        .lesson-body p {
+            font-size: 14px;
+            color: var(--text-secondary);
+            line-height: 1.7;
+            margin-bottom: 16px;
+        }
+
+        .layer-grid { display: flex; flex-direction: column; gap: 6px; margin: 16px 0; }
+
+        .layer-item {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 12px 16px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            transition: all 0.2s;
+        }
+
+        .layer-item:nth-child(1) { border-left: 3px solid #FF6B35; }
+        .layer-item:nth-child(2) { border-left: 3px solid #F59E0B; }
+        .layer-item:nth-child(3) { border-left: 3px solid #10B981; }
+        .layer-item:nth-child(4) { border-left: 3px solid #3B82F6; }
+        .layer-item:nth-child(5) { border-left: 3px solid #8B5CF6; }
+        .layer-item:nth-child(6) { border-left: 3px solid #EC4899; }
+        .layer-item:nth-child(7) { border-left: 3px solid #6B7280; }
+
+        .layer-num {
+            width: 28px; height: 28px;
+            background: rgba(255,255,255,0.08);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 13px;
+            font-weight: 800;
+            flex-shrink: 0;
+        }
+
+        .layer-name { font-size: 15px; font-weight: 700; flex: 1; }
+        .layer-desc { font-size: 12px; color: var(--text-secondary); }
+
+        .memory-tip {
+            background: rgba(255,214,10,0.08);
+            border: 1px solid rgba(255,214,10,0.25);
+            border-radius: 10px;
+            padding: 14px 16px;
+            font-size: 14px;
+            color: var(--accent-yellow);
+            margin: 16px 0;
+        }
+
+        .comparison-table {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin: 16px 0;
+        }
+
+        .compare-col {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 16px;
+        }
+
+        .compare-col.tcp { border-top: 3px solid var(--accent-blue); }
+        .compare-col.udp { border-top: 3px solid var(--accent-orange); }
+
+        .compare-col h4 { font-size: 16px; margin-bottom: 10px; }
+        .compare-col ul { list-style: none; }
+        .compare-col li { font-size: 13px; padding: 4px 0; color: var(--text-secondary); }
+
+        .port-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 8px;
+            margin: 12px 0;
+        }
+
+        .port-item {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 10px 12px;
+            font-size: 13px;
+            font-family: 'JetBrains Mono', monospace;
+            color: var(--accent-green);
+        }
+
+        .ip-visual {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 4px;
+            background: var(--bg-card);
+            border-radius: 10px;
+            padding: 16px;
+            margin: 16px 0;
+        }
+
+        .octet {
+            background: rgba(0,194,255,0.15);
+            border: 1px solid rgba(0,194,255,0.3);
+            border-radius: 8px;
+            padding: 8px 14px;
+            font-size: 18px;
+            font-weight: 800;
+            font-family: 'JetBrains Mono', monospace;
+            color: var(--accent-blue);
+        }
+
+        .dot { font-size: 20px; color: var(--text-secondary); }
+
+        .ip-table { background: var(--bg-card); border-radius: var(--radius); overflow: hidden; margin: 12px 0; }
+
+        .ip-row {
+            display: grid;
+            grid-template-columns: 0.5fr 2fr 1.5fr;
+            padding: 12px 16px;
+            border-bottom: 1px solid var(--border);
+            font-size: 13px;
+        }
+
+        .ip-row:last-child { border-bottom: none; }
+        .ip-row.header { background: rgba(255,255,255,0.04); font-weight: 700; color: var(--text-secondary); }
+
+        .device-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            margin: 16px 0;
+        }
+
+        .device-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 16px;
+            text-align: center;
+        }
+
+        .device-icon { font-size: 32px; margin-bottom: 8px; }
+        .device-card h4 { font-size: 14px; font-weight: 700; margin-bottom: 6px; }
+        .device-card p { font-size: 12px; color: var(--text-secondary); line-height: 1.4; }
+
+        .threat-list { display: flex; flex-direction: column; gap: 10px; margin: 12px 0; }
+
+        .threat-item {
+            display: flex;
+            gap: 14px;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 14px;
+        }
+
+        .threat-icon { font-size: 28px; flex-shrink: 0; }
+        .threat-item strong { font-size: 14px; display: block; margin-bottom: 4px; }
+        .threat-item p { font-size: 12px; color: var(--text-secondary); margin: 0; }
+
+        .protection-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 8px;
+            margin: 12px 0;
+        }
+
+        .protect-item {
+            background: rgba(0,255,135,0.06);
+            border: 1px solid rgba(0,255,135,0.15);
+            border-radius: 8px;
+            padding: 10px 12px;
+            font-size: 13px;
+            color: var(--accent-green);
+        }
+
+        /* ============ PROFILE SCREEN ============ */
+        #profile-screen {
+            flex-direction: column;
+            padding-bottom: 100px;
+        }
+
+        .profile-header {
+            padding: 30px 20px 20px;
+            text-align: center;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .profile-avatar {
+            font-size: 64px;
+            display: block;
+            margin-bottom: 10px;
+        }
+
+        .profile-name {
+            font-size: 24px;
+            font-weight: 900;
+        }
+
+        .profile-level {
+            font-size: 14px;
+            color: var(--accent-yellow);
+            margin-top: 4px;
+        }
+
+        .profile-stats-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+            padding: 20px;
+        }
+
+        .profile-stat-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 16px;
+            text-align: center;
+        }
+
+        .ps-icon { font-size: 28px; }
+        .ps-value { font-size: 24px; font-weight: 900; margin: 4px 0; }
+        .ps-label { font-size: 11px; color: var(--text-secondary); }
+
+        .achievements-section {
+            padding: 0 20px;
+        }
+
+        .achievement-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin-top: 12px;
+        }
+
+        .achievement-item {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 14px 8px;
+            text-align: center;
+            transition: all 0.2s;
+        }
+
+        .achievement-item.locked { opacity: 0.4; }
+        .ach-icon { font-size: 28px; }
+        .ach-name { font-size: 11px; margin-top: 4px; font-weight: 600; }
+
+        /* ============ Toast ============ */
+        .toast {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%) translateY(-100px);
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 50px;
+            padding: 12px 24px;
+            font-size: 14px;
+            font-weight: 700;
+            z-index: 999;
+            transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            white-space: nowrap;
+            max-width: 90vw;
+        }
+
+        .toast.show { transform: translateX(-50%) translateY(0); }
+
+        /* ============ Scrollbar ============ */
+        ::-webkit-scrollbar { width: 4px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+        /* ============ PWA Safe Area ============ */
+        @supports (padding: max(0px)) {
+            .bottom-nav { padding-bottom: max(14px, env(safe-area-inset-bottom)); }
+        }
+
+        /* ============ Animations ============ */
+        .fade-in { animation: fadeIn 0.4s ease; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
+
+        .scale-in { animation: scaleIn 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+        @keyframes scaleIn { from { transform: scale(0.92); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+
+        /* XP Popup */
+        .xp-popup {
+            position: fixed;
+            top: 30%;
+            left: 50%;
+            transform: translateX(-50%);
+            background: linear-gradient(135deg, var(--accent-yellow), var(--accent-orange));
+            color: #000;
+            border-radius: 50px;
+            padding: 10px 24px;
+            font-size: 20px;
+            font-weight: 900;
+            z-index: 400;
+            animation: xp-float 1.5s forwards;
+        }
+
+        @keyframes xp-float {
+            0% { opacity: 0; transform: translateX(-50%) translateY(0) scale(0.5); }
+            30% { opacity: 1; transform: translateX(-50%) translateY(-10px) scale(1.1); }
+            70% { opacity: 1; transform: translateX(-50%) translateY(-30px) scale(1); }
+            100% { opacity: 0; transform: translateX(-50%) translateY(-60px) scale(0.8); }
+        }
+
+        /* StreakChain */
+        .streak-chain {
+            display: flex;
+            gap: 6px;
+            padding: 0 20px;
+            margin: 16px 0 0;
+            overflow-x: auto;
+        }
+
+        .streak-day {
+            flex-shrink: 0;
+            width: 36px; height: 36px;
+            border-radius: 10px;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+        }
+
+        .streak-day.done {
+            background: rgba(255,107,53,0.15);
+            border-color: rgba(255,107,53,0.4);
+        }
+
+        .streak-day.today {
+            background: rgba(255,107,53,0.25);
+            border-color: var(--accent-orange);
+            box-shadow: 0 0 10px rgba(255,107,53,0.3);
+        }
+    </style>
+</head>
+<body>
+
+<!-- Background Glows -->
+<div class="bg-glow bg-glow-1"></div>
+<div class="bg-glow bg-glow-2"></div>
+<div class="bg-glow bg-glow-3"></div>
+
+<div id="app">
+
+    <!-- ===== SPLASH SCREEN ===== -->
+    <div id="splash-screen" class="view active">
+        <div class="splash-logo">🌐</div>
+        <div class="splash-title">NetQuest</div>
+        <div class="splash-subtitle">เรียนรู้ Network Concepts สนุกแบบ Duolingo!</div>
+        <div class="splash-loading">
+            <div class="splash-loading-bar"></div>
+        </div>
+    </div>
+
+    <!-- ===== HOME SCREEN ===== -->
+    <div id="home-screen" class="view">
+        <div class="top-bar">
+            <div class="app-brand">
+                <span class="brand-icon">🌐</span>
+                <span class="brand-name">NetQuest</span>
+            </div>
+            <div class="top-stats">
+                <div class="stat-badge stat-streak">
+                    <span class="icon">🔥</span>
+                    <span id="streak-count">0</span>
+                </div>
+                <div class="stat-badge stat-xp">
+                    <span class="icon">⚡</span>
+                    <span id="xp-count">0</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Hero -->
+        <div class="hero-section">
+            <div class="hero-greeting">สวัสดีวันนี้! 👋</div>
+            <div class="hero-title">
+                เรียน <span class="highlight">Network</span><br>ให้เก่งกว่าเมื่อวาน
+            </div>
+        </div>
+
+        <!-- Streak Days -->
+        <div class="streak-chain" id="streak-chain"></div>
+
+        <!-- XP Progress -->
+        <div class="xp-progress-container">
+            <div class="xp-header">
+                <span class="xp-label">⚡ Progress ถึง Level ถัดไป</span>
+                <span class="xp-value" id="xp-progress-text">0 / 200 XP</span>
+            </div>
+            <div class="xp-bar">
+                <div class="xp-fill" id="xp-progress-bar" style="width:0%"></div>
+            </div>
+        </div>
+
+        <!-- Daily Challenge -->
+        <div class="daily-banner" onclick="startDailyChallenge()">
+            <span class="daily-icon">🎯</span>
+            <div class="daily-info">
+                <div class="daily-title">Daily Challenge!</div>
+                <div class="daily-desc">ทำ Quiz พิเศษ รับ XP โบนัส x2 🎁</div>
+            </div>
+            <span class="daily-arrow">›</span>
+        </div>
+
+        <!-- Lessons -->
+        <div class="section-header">
+            <div>
+                <div class="section-title">📚 บทเรียน</div>
+                <div class="section-subtitle">เลือกหัวข้อที่ต้องการเรียน</div>
+            </div>
+        </div>
+
+        <div class="lessons-grid" id="lessons-grid"></div>
+    </div>
+
+    <!-- ===== LESSON CONTENT SCREEN ===== -->
+    <div id="lesson-screen" class="view">
+        <div class="lesson-header">
+            <button class="btn-back" onclick="showHome()">‹</button>
+            <span class="lesson-title-bar" id="lesson-title-bar">บทเรียน</span>
+            <span id="lesson-icon-bar" style="font-size:24px"></span>
+        </div>
+        <div class="lesson-body" id="lesson-body"></div>
+        <div style="padding:16px 20px 30px; background:rgba(17,24,39,0.9); backdrop-filter:blur(20px); border-top:1px solid var(--border);">
+            <button class="btn-primary" id="start-quiz-btn" onclick="startQuiz()">🎮 เริ่ม Quiz !</button>
+        </div>
+    </div>
+
+    <!-- ===== QUIZ SCREEN ===== -->
+    <div id="quiz-screen" class="view">
+        <div class="quiz-header">
+            <button class="btn-back" onclick="exitQuiz()">✕</button>
+            <div class="quiz-progress-bar-outer">
+                <div class="quiz-progress-bar-fill" id="quiz-progress-bar" style="width:0%"></div>
+            </div>
+            <div class="quiz-counter" id="quiz-counter">1/5</div>
+            <div class="hearts-display" id="hearts-display"></div>
+        </div>
+
+        <div class="quiz-content">
+            <div class="question-card fade-in" id="question-card">
+                <div class="question-topic" id="question-topic"></div>
+                <div class="question-text" id="question-text"></div>
+                <div class="question-points" id="question-points">⚡ 10 XP</div>
+            </div>
+
+            <div class="options-grid" id="options-grid"></div>
+
+            <div class="feedback-box" id="feedback-box">
+                <span class="feedback-icon" id="feedback-icon"></span>
+                <div class="feedback-text">
+                    <div class="feedback-title" id="feedback-title"></div>
+                    <div class="feedback-explanation" id="feedback-explanation"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="quiz-footer">
+            <button class="btn-primary" id="quiz-next-btn" disabled onclick="nextQuestion()">ตรวจคำตอบ</button>
+        </div>
+    </div>
+
+    <!-- ===== RESULT SCREEN ===== -->
+    <div id="result-screen" class="view">
+        <div class="result-trophy" id="result-trophy">🏆</div>
+        <div>
+            <div class="result-title" id="result-title">ยอดเยี่ยม!</div>
+            <div class="result-subtitle" id="result-subtitle">บทเรียนเสร็จสมบูรณ์</div>
+        </div>
+        <div class="result-stats">
+            <div class="result-stat">
+                <div class="result-stat-value" id="result-correct" style="color:var(--accent-green)">0</div>
+                <div class="result-stat-label">ตอบถูก</div>
+            </div>
+            <div class="result-stat">
+                <div class="result-stat-value" id="result-xp" style="color:var(--accent-yellow)">0</div>
+                <div class="result-stat-label">XP ได้รับ</div>
+            </div>
+            <div class="result-stat">
+                <div class="result-stat-value" id="result-accuracy" style="color:var(--accent-blue)">0%</div>
+                <div class="result-stat-label">ความแม่น</div>
+            </div>
+        </div>
+        <div class="result-actions">
+            <button class="btn-primary" onclick="showHome()">🏠 กลับหน้าหลัก</button>
+            <button class="btn-secondary" onclick="retryQuiz()">🔄 ลองใหม่อีกครั้ง</button>
+        </div>
+    </div>
+
+    <!-- ===== LEADERBOARD SCREEN ===== -->
+    <div id="leaderboard-screen" class="view">
+        <div class="leaderboard-header">
+            <div class="leaderboard-title">🏆 ตารางคะแนน</div>
+            <div style="color:var(--text-secondary);font-size:13px;margin-top:4px;">สัปดาห์นี้</div>
+        </div>
+        <div class="top-3-grid" id="top3-grid"></div>
+        <div class="leaderboard-list" id="leaderboard-list"></div>
+    </div>
+
+    <!-- ===== PROFILE SCREEN ===== -->
+    <div id="profile-screen" class="view">
+        <div class="profile-header">
+            <span class="profile-avatar">🧑‍💻</span>
+            <div class="profile-name" id="profile-name">NetLearner</div>
+            <div class="profile-level" id="profile-level">⚡ Level 1 · Network Newbie</div>
+        </div>
+        <div class="profile-stats-grid">
+            <div class="profile-stat-card">
+                <div class="ps-icon">⚡</div>
+                <div class="ps-value" id="ps-xp" style="color:var(--accent-yellow)">0</div>
+                <div class="ps-label">Total XP</div>
+            </div>
+            <div class="profile-stat-card">
+                <div class="ps-icon">🔥</div>
+                <div class="ps-value" id="ps-streak" style="color:var(--accent-orange)">0</div>
+                <div class="ps-label">Day Streak</div>
+            </div>
+            <div class="profile-stat-card">
+                <div class="ps-icon">✅</div>
+                <div class="ps-value" id="ps-correct" style="color:var(--accent-green)">0</div>
+                <div class="ps-label">ตอบถูก</div>
+            </div>
+        </div>
+
+        <div class="achievements-section">
+            <div class="section-title" style="margin-bottom:4px;">🎖️ Achievements</div>
+            <div class="achievement-grid" id="achievements-grid"></div>
+        </div>
+    </div>
+
+    <!-- ===== BOTTOM NAV ===== -->
+    <div class="bottom-nav" id="bottom-nav">
+        <div class="nav-item active" onclick="showHome()" id="nav-home">
+            <span class="nav-icon">🏠</span>
+            <span class="nav-label">หน้าหลัก</span>
+        </div>
+        <div class="nav-item" onclick="showLeaderboard()" id="nav-lb">
+            <span class="nav-icon">🏆</span>
+            <span class="nav-label">อันดับ</span>
+        </div>
+        <div class="nav-item" onclick="showProfile()" id="nav-profile">
+            <span class="nav-icon">👤</span>
+            <span class="nav-label">โปรไฟล์</span>
+        </div>
+    </div>
+
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<!-- Stars container -->
+<div class="stars-container" id="stars-container"></div>
+
+<script>
+// ============ State ============
+let state = {
+    xp: 0,
+    streak: 1,
+    totalCorrect: 0,
+    lessonsCompleted: {},
+    currentLesson: null,
+    currentQuestions: [],
+    currentQuestionIndex: 0,
+    hearts: 3,
+    earnedXP: 0,
+    correctAnswers: 0,
+    selectedAnswer: null,
+    answered: false,
+    isDaily: false
+};
+
+const LEVELS = [
+    { min: 0, name: "Network Newbie", icon: "🌱" },
+    { min: 100, name: "Packet Learner", icon: "📦" },
+    { min: 300, name: "LAN Explorer", icon: "🗺️" },
+    { min: 600, name: "IP Navigator", icon: "🧭" },
+    { min: 1000, name: "Protocol Pro", icon: "⚙️" },
+    { min: 1500, name: "Security Guard", icon: "🛡️" },
+    { min: 2000, name: "Network Master", icon: "👑" },
+    { min: 3000, name: "NetQuest Legend", icon: "🌟" },
+];
+
+const ACHIEVEMENTS = [
+    { id: "first_quiz", name: "ทำ Quiz ครั้งแรก", icon: "🎮" },
+    { id: "streak_3", name: "Streak 3 วัน", icon: "🔥" },
+    { id: "perfect_quiz", name: "ได้ Perfect Score", icon: "💯" },
+    { id: "xp_100", name: "สะสม 100 XP", icon: "⚡" },
+    { id: "all_lessons", name: "เรียนครบทุกบท", icon: "📚" },
+    { id: "security_master", name: "จบ Security", icon: "🔒" },
+];
+
+// Load from localStorage
+function loadState() {
+    const saved = localStorage.getItem('netquest_state');
+    if (saved) {
+        try { state = { ...state, ...JSON.parse(saved) }; } catch(e) {}
+    }
+}
+
+function saveState() {
+    localStorage.setItem('netquest_state', JSON.stringify(state));
+}
+
+// ============ Init ============
+window.addEventListener('load', () => {
+    loadState();
+    setTimeout(() => {
+        showHome();
+        loadLessons();
+        initStreakChain();
+    }, 2200);
+});
+
+// ============ Navigation ============
+function showView(viewId) {
+    document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+    document.getElementById(viewId).classList.add('active');
+
+    const hasNav = ['home-screen', 'leaderboard-screen', 'profile-screen'].includes(viewId);
+    document.getElementById('bottom-nav').style.display = hasNav ? 'flex' : 'none';
+
+    // Update nav active state
+    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+    const navMap = { 'home-screen': 'nav-home', 'leaderboard-screen': 'nav-lb', 'profile-screen': 'nav-profile' };
+    if (navMap[viewId]) document.getElementById(navMap[viewId]).classList.add('active');
+}
+
+function showHome() {
+    showView('home-screen');
+    updateHomeStats();
+}
+
+function showLeaderboard() {
+    showView('leaderboard-screen');
+    loadLeaderboard();
+}
+
+function showProfile() {
+    showView('profile-screen');
+    updateProfile();
+}
+
+// ============ Load Lessons ============
+async function loadLessons() {
+    try {
+        const res = await fetch('/api/lessons');
+        const lessons = await res.json();
+        renderLessons(lessons);
+    } catch(e) {
+        console.error(e);
+    }
+}
+
+function renderLessons(lessons) {
+    const grid = document.getElementById('lessons-grid');
+    grid.innerHTML = '';
+
+    lessons.forEach((lesson, index) => {
+        const isCompleted = state.lessonsCompleted[lesson.id];
+        const progress = isCompleted ? 100 : (index === 0 ? 45 : 0);
+
+        const card = document.createElement('div');
+        card.className = 'lesson-card fade-in';
+        card.style.setProperty('--card-color', lesson.color);
+        card.style.setProperty('--card-bg', hexToRgba(lesson.color, 0.1));
+        card.style.animationDelay = `${index * 0.08}s`;
+
+        const statusClass = isCompleted ? 'status-done' : (index <= getUnlockedCount() ? 'status-active' : 'status-locked');
+        const statusIcon = isCompleted ? '✅' : (index <= getUnlockedCount() ? '▶' : '🔒');
+
+        card.innerHTML = `
+            <div class="lesson-card-inner">
+                <div class="lesson-card-icon">${lesson.icon}</div>
+                <div class="lesson-card-info">
+                    <div class="lesson-card-title">${lesson.title}</div>
+                    <div class="lesson-card-desc">${lesson.description}</div>
+                    <div class="lesson-card-meta">
+                        <span class="lesson-meta-tag">${lesson.question_count} คำถาม</span>
+                        <span class="lesson-meta-tag xp">+${lesson.xp} XP</span>
+                    </div>
+                    <div class="lesson-progress-bar">
+                        <div class="lesson-progress-fill" style="width:${progress}%"></div>
+                    </div>
+                </div>
+                <div class="lesson-status">
+                    <div class="lesson-status-icon ${statusClass}">${statusIcon}</div>
+                </div>
+            </div>
+        `;
+
+        card.onclick = () => openLesson(lesson.id);
+        grid.appendChild(card);
+    });
+}
+
+function getUnlockedCount() {
+    return Object.keys(state.lessonsCompleted).length;
+}
+
+function hexToRgba(hex, alpha) {
+    const r = parseInt(hex.slice(1,3), 16);
+    const g = parseInt(hex.slice(3,5), 16);
+    const b = parseInt(hex.slice(5,7), 16);
+    return `rgba(${r},${g},${b},${alpha})`;
+}
+
+// ============ Open Lesson ============
+async function openLesson(lessonId) {
+    try {
+        const res = await fetch(`/api/lesson/${lessonId}`);
+        const lesson = await res.json();
+
+        state.currentLesson = lessonId;
+        document.getElementById('lesson-title-bar').textContent = lesson.title;
+        document.getElementById('lesson-icon-bar').textContent = lesson.icon;
+        document.getElementById('lesson-body').innerHTML = lesson.content;
+        showView('lesson-screen');
+
+    } catch(e) {
+        showToast('❌ โหลดบทเรียนไม่สำเร็จ');
+    }
+}
+
+// ============ Start Quiz ============
+async function startQuiz() {
+    if (!state.currentLesson) return;
+    try {
+        const res = await fetch(`/api/questions/${state.currentLesson}`);
+        const questions = await res.json();
+
+        state.currentQuestions = questions.slice(0, 5);
+        state.currentQuestionIndex = 0;
+        state.hearts = 3;
+        state.earnedXP = 0;
+        state.correctAnswers = 0;
+
+        showView('quiz-screen');
+        renderQuestion();
+
+    } catch(e) {
+        showToast('❌ โหลดคำถามไม่สำเร็จ');
+    }
+}
+
+function startDailyChallenge() {
+    state.isDaily = true;
+    // Mix questions from all topics
+    const allKeys = ['osi_model', 'tcp_ip', 'ip_addressing', 'network_devices', 'security'];
+    state.currentLesson = allKeys[Math.floor(Math.random() * allKeys.length)];
+    startQuiz();
+}
+
+// ============ Render Question ============
+function renderQuestion() {
+    const q = state.currentQuestions[state.currentQuestionIndex];
+    const total = state.currentQuestions.length;
+
+    document.getElementById('quiz-counter').textContent = `${state.currentQuestionIndex + 1}/${total}`;
+    document.getElementById('quiz-progress-bar').style.width = `${(state.currentQuestionIndex / total) * 100}%`;
+    document.getElementById('question-text').textContent = q.question;
+    document.getElementById('question-points').textContent = `⚡ ${q.points} XP`;
+
+    // Hearts
+    const heartsEl = document.getElementById('hearts-display');
+    heartsEl.innerHTML = '';
+    for (let i = 0; i < 3; i++) {
+        const h = document.createElement('span');
+        h.className = `heart${i >= state.hearts ? ' lost' : ''}`;
+        h.textContent = '❤️';
+        heartsEl.appendChild(h);
+    }
+
+    // Options
+    const optLabels = ['A', 'B', 'C', 'D'];
+    const grid = document.getElementById('options-grid');
+    grid.innerHTML = '';
+
+    q.options.forEach((opt, i) => {
+        const btn = document.createElement('button');
+        btn.className = 'option-btn';
+        btn.innerHTML = `<span class="option-label">${optLabels[i]}</span><span>${opt}</span>`;
+        btn.onclick = () => selectAnswer(i, btn);
+        grid.appendChild(btn);
+    });
+
+    // Reset feedback & button
+    const fb = document.getElementById('feedback-box');
+    fb.className = 'feedback-box';
+    const nextBtn = document.getElementById('quiz-next-btn');
+    nextBtn.disabled = true;
+    nextBtn.textContent = 'ตรวจคำตอบ';
+
+    state.selectedAnswer = null;
+    state.answered = false;
+
+    // Animate question card
+    const card = document.getElementById('question-card');
+    card.style.animation = 'none';
+    card.offsetHeight; // reflow
+    card.style.animation = 'fadeIn 0.3s ease';
+}
+
+function selectAnswer(index, btn) {
+    if (state.answered) return;
+
+    document.querySelectorAll('.option-btn').forEach(b => b.classList.remove('selected'));
+    btn.classList.add('selected');
+    state.selectedAnswer = index;
+
+    document.getElementById('quiz-next-btn').disabled = false;
+}
+
+async function nextQuestion() {
+    const q = state.currentQuestions[state.currentQuestionIndex];
+
+    if (!state.answered) {
+        if (state.selectedAnswer === null) return;
+
+        // Check answer
+        state.answered = true;
+        const correct = state.selectedAnswer === q.answer;
+
+        // Visual feedback
+        const btns = document.querySelectorAll('.option-btn');
+        btns.forEach((btn, i) => {
+            btn.disabled = true;
+            if (i === q.answer) btn.classList.add('correct');
+            else if (i === state.selectedAnswer && !correct) btn.classList.add('wrong');
+        });
+
+        // Show feedback box
+        const fb = document.getElementById('feedback-box');
+        if (correct) {
+            fb.className = 'feedback-box correct-fb show';
+            document.getElementById('feedback-icon').textContent = '🎉';
+            document.getElementById('feedback-title').textContent = 'ถูกต้อง!';
+            document.getElementById('feedback-explanation').textContent = q.explanation;
+            state.earnedXP += q.points * (state.isDaily ? 2 : 1);
+            state.correctAnswers++;
+            state.totalCorrect++;
+            showXPPopup(`+${q.points} XP${state.isDaily ? ' x2!' : ''}`);
+            createStars();
+        } else {
+            fb.className = 'feedback-box wrong-fb show';
+            document.getElementById('feedback-icon').textContent = '❌';
+            document.getElementById('feedback-title').textContent = 'ยังไม่ถูก';
+            document.getElementById('feedback-explanation').textContent = q.explanation;
+            state.hearts--;
+        }
+
+        document.getElementById('quiz-next-btn').textContent = 'ต่อไป →';
+        return;
+    }
+
+    // Move to next or finish
+    state.currentQuestionIndex++;
+    if (state.currentQuestionIndex >= state.currentQuestions.length || state.hearts <= 0) {
+        finishQuiz();
+    } else {
+        renderQuestion();
+    }
+}
+
+function finishQuiz() {
+    const total = state.currentQuestions.length;
+    const accuracy = Math.round((state.correctAnswers / total) * 100);
+
+    state.xp += state.earnedXP;
+    if (state.currentLesson) {
+        state.lessonsCompleted[state.currentLesson] = true;
+    }
+
+    checkAchievements();
+    saveState();
+
+    // Result screen
+    const isGood = accuracy >= 80;
+    document.getElementById('result-trophy').textContent = accuracy === 100 ? '🏆' : (isGood ? '🥇' : '📖');
+    document.getElementById('result-title').textContent = accuracy === 100 ? 'Perfect Score!' : (isGood ? 'ยอดเยี่ยม!' : 'ลองอีกครั้ง!');
+    document.getElementById('result-subtitle').textContent = `เสร็จสิ้นบทเรียน · ได้ ${state.earnedXP} XP`;
+    document.getElementById('result-correct').textContent = `${state.correctAnswers}/${total}`;
+    document.getElementById('result-xp').textContent = `+${state.earnedXP}`;
+    document.getElementById('result-accuracy').textContent = `${accuracy}%`;
+
+    if (accuracy === 100) createStars(20);
+    showView('result-screen');
+    state.isDaily = false;
+}
+
+function retryQuiz() {
+    startQuiz();
+}
+
+function exitQuiz() {
+    if (confirm('ออกจาก Quiz? ความคืบหน้าจะหาย')) showHome();
+}
+
+// ============ Leaderboard ============
+async function loadLeaderboard() {
+    try {
+        const res = await fetch('/api/leaderboard');
+        const data = await res.json();
+        renderLeaderboard(data);
+    } catch(e) { }
+}
+
+function renderLeaderboard(data) {
+    // Top 3
+    const top3 = document.getElementById('top3-grid');
+    const order = [data[1], data[0], data[2]]; // 2nd, 1st, 3rd for visual pyramid
+    const classes = ['second-place', 'first-place', 'third-place'];
+    const trophies = ['🥈', '🥇', '🥉'];
+    top3.innerHTML = '';
+    order.forEach((p, i) => {
+        if (!p) return;
+        const div = document.createElement('div');
+        div.className = `top-player ${classes[i]} scale-in`;
+        div.innerHTML = `
+            <div class="top-rank">${trophies[i]}</div>
+            <div class="top-avatar">${p.avatar}</div>
+            <div class="top-name">${p.name}</div>
+            <div class="top-xp">⚡ ${p.xp} XP</div>
+        `;
+        top3.appendChild(div);
+    });
+
+    // Remaining
+    const list = document.getElementById('leaderboard-list');
+    list.innerHTML = '';
+    data.slice(3).forEach(p => {
+        const div = document.createElement('div');
+        div.className = 'lb-item fade-in';
+        div.innerHTML = `
+            <span class="lb-rank">${p.rank}</span>
+            <span class="lb-avatar">${p.avatar}</span>
+            <div class="lb-info">
+                <div class="lb-name">${p.name}</div>
+                <div class="lb-streak">🔥 ${p.streak} day streak</div>
+            </div>
+            <span class="lb-xp">⚡ ${p.xp}</span>
+        `;
+        list.appendChild(div);
+    });
+}
+
+// ============ Profile ============
+function updateProfile() {
+    const level = getLevel();
+    document.getElementById('profile-level').textContent = `${level.icon} Level ${getLevel().level} · ${level.name}`;
+    document.getElementById('ps-xp').textContent = state.xp;
+    document.getElementById('ps-streak').textContent = state.streak;
+    document.getElementById('ps-correct').textContent = state.totalCorrect;
+
+    const grid = document.getElementById('achievements-grid');
+    grid.innerHTML = '';
+    ACHIEVEMENTS.forEach(ach => {
+        const unlocked = state.achievements && state.achievements[ach.id];
+        const div = document.createElement('div');
+        div.className = `achievement-item${unlocked ? '' : ' locked'}`;
+        div.innerHTML = `<div class="ach-icon">${ach.icon}</div><div class="ach-name">${ach.name}</div>`;
+        grid.appendChild(div);
+    });
+}
+
+function updateHomeStats() {
+    document.getElementById('streak-count').textContent = state.streak;
+    document.getElementById('xp-count').textContent = state.xp;
+
+    const level = getLevel();
+    const nextLevel = LEVELS[Math.min(level.level, LEVELS.length - 1)];
+    const prevXP = LEVELS[level.level - 1]?.min || 0;
+    const nextXP = nextLevel?.min || prevXP + 200;
+    const progress = Math.min(100, ((state.xp - prevXP) / (nextXP - prevXP)) * 100);
+
+    document.getElementById('xp-progress-bar').style.width = `${progress}%`;
+    document.getElementById('xp-progress-text').textContent = `${state.xp} / ${nextXP} XP`;
+}
+
+function getLevel() {
+    let currentLevel = LEVELS[0];
+    let levelIndex = 0;
+    LEVELS.forEach((l, i) => {
+        if (state.xp >= l.min) { currentLevel = l; levelIndex = i; }
+    });
+    return { ...currentLevel, level: levelIndex + 1 };
+}
+
+function initStreakChain() {
+    const chain = document.getElementById('streak-chain');
+    chain.innerHTML = '';
+    const days = ['จ', 'อ', 'พ', 'พฤ', 'ศ', 'ส', 'อา'];
+    const today = new Date().getDay();
+    days.forEach((d, i) => {
+        const div = document.createElement('div');
+        const dayIndex = (i + 1) % 7;
+        const isDone = i < today;
+        const isToday = i === (today === 0 ? 6 : today - 1);
+        div.className = `streak-day${isDone ? ' done' : ''}${isToday ? ' today' : ''}`;
+        div.textContent = isDone || isToday ? '🔥' : d;
+        chain.appendChild(div);
+    });
+}
+
+function checkAchievements() {
+    if (!state.achievements) state.achievements = {};
+    const q = state.currentQuestions.length;
+    if (!state.achievements.first_quiz) { state.achievements.first_quiz = true; showToast('🎖️ Achievement: ทำ Quiz ครั้งแรก!'); }
+    if (state.xp >= 100 && !state.achievements.xp_100) { state.achievements.xp_100 = true; showToast('⚡ Achievement: สะสม 100 XP!'); }
+    if (state.correctAnswers === q && !state.achievements.perfect_quiz) { state.achievements.perfect_quiz = true; showToast('💯 Perfect Score Achievement!'); }
+}
+
+// ============ Effects ============
+function showToast(msg) {
+    const toast = document.getElementById('toast');
+    toast.textContent = msg;
+    toast.classList.add('show');
+    setTimeout(() => toast.classList.remove('show'), 3000);
+}
+
+function showXPPopup(text) {
+    const el = document.createElement('div');
+    el.className = 'xp-popup';
+    el.textContent = text;
+    document.body.appendChild(el);
+    setTimeout(() => el.remove(), 1500);
+}
+
+function createStars(count = 8) {
+    const container = document.getElementById('stars-container');
+    const emojis = ['⭐', '✨', '🌟', '💫'];
+    for (let i = 0; i < count; i++) {
+        setTimeout(() => {
+            const star = document.createElement('div');
+            star.className = 'star-particle';
+            star.textContent = emojis[Math.floor(Math.random() * emojis.length)];
+            star.style.left = `${Math.random() * 100}%`;
+            star.style.top = `${Math.random() * 60}%`;
+            star.style.animationDelay = `${Math.random() * 0.5}s`;
+            container.appendChild(star);
+            setTimeout(() => star.remove(), 2000);
+        }, i * 100);
+    }
+}
+
+// Register Service Worker for PWA
+if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('/static/sw.js').catch(console.error);
+}
+</script>
+</body>
+</html>
